@@ -2,7 +2,9 @@ name: Jest Integration Tests
 
 on:
   push:
-    branches: [main, develop] # Adjust the branches as needed
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   test:
@@ -25,11 +27,30 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
+      - name: Upload Jest output for debugging
+        uses: actions/upload-artifact@v2
+        with:
+        name: jest-output
+        path: ./coverage/*
+
+      - name: List node_modules
+        run: ls -R node_modules
+
+      - name: Print Jest config
+        run: npx jest --showConfig
+
       - name: Install Dependencies
         run: npm install
 
       - name: Run tests
         run: npm test -- --watchAll=false --testPathPattern="path/to/changed/files"
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov-report/lcov-report.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          debug: true
 
       - name: Run tests in watch mode
         run: npm test -- --watch

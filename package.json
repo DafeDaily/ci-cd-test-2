@@ -7,6 +7,7 @@
     "test": "jest"
   },
   "jest": {
+    "bail": 1,
     "coverageThreshold": {
       "global": {
         "branches": 80,
