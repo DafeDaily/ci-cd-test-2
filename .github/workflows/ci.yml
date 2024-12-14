@@ -28,8 +28,11 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Run Jest Tests
-        run: npm test
+      - name: Run tests
+        run: npm test -- --watchAll=false --testPathPattern="path/to/changed/files"
+
+      - name: Run tests in watch mode
+        run: npm test -- --watch
 
       - name: Generate Code Coverage Report
         run: npm run coverage
