@@ -70,7 +70,7 @@ jobs:
 
       - name: Notify Team on Test Failures
         if: failure()
-        uses: rtCamp/action-slack-notify@v4
+        uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_CHANNEL: your-slack-channel # Replace with your Slack channel name
           SLACK_COLOR: ${{ job.status }} # Use the job status for the color (e.g., danger for failure)
