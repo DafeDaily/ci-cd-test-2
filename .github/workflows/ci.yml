@@ -7,17 +7,21 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        node-version: [14.x]  # Specify your Node.js version
+
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up Node.js
+      - name: Set up Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: ${{ matrix.node-version }}
 
       - name: Cache Node.js dependencies
         uses: actions/cache@v2
@@ -30,29 +34,32 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm test
+      - name: Run tests with coverage
+        run: npm test -- --coverage
 
-      - name: Generate code coverage report
-        run: npm run coverage
-
-      - name: Upload code coverage report
-        uses: codecov/codecov-action@v1
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage/lcov.info
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}  # Set up CODECOV_TOKEN in your repository secrets
+          files: coverage/clover.xml  # Adjust the path if needed
 
-      - name: Notify Slack on failure
+      - name: Fail if coverage is below threshold
+        run: |
+          THRESHOLD=90
+          COVERAGE=$(cat coverage/clover.xml | grep -oP '(?<=<coverage[^>]*>)[^<]*(?=</coverage>)')
+          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+            echo "Code coverage ($COVERAGE%) is below the threshold ($THRESHOLD%)"
+            exit 1
+          fi
+
+      - name: Send Slack notification on failure
         if: failure()
         uses: rtCamp/action-slack-notify@v2
         env:
-          SLACK_CHANNEL: your-slack-channel
-          SLACK_COLOR: '#FF0000'
+          SLACK_CHANNEL: your-slack-channel  # Replace with your Slack channel
+          SLACK_COLOR: '#FF0000'  # Red color for failure
           SLACK_ICON: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
-          SLACK_MESSAGE: 'Integration tests failed on ${{ github.repository }}'
+          SLACK_MESSAGE: 'Integration tests failed on ${{ github.ref }}'
           SLACK_TITLE: 'CI Failure'
           SLACK_USERNAME: GitHub Actions
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}  # Set up SLACK_WEBHOOK in your repository secrets
