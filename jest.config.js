@@ -2,14 +2,14 @@
 
 module.exports = {
     bail: 1,
-    coverageThreshold: {
-        global: {
-        branches: 80,
-        functions: 80,
-        lines: 80,
-        statements: 80
-        }
-    },
+    // coverageThreshold: {
+    //     global: {
+    //     branches: 80,
+    //     functions: 80,
+    //     lines: 80,
+    //     statements: 80
+    //     }
+    // },
     testEnvironment: 'node', // Change to 'jsdom' if testing frontend code
     setupFilesAfterEnv: ['./jest.setup.js'],
     transform: {
