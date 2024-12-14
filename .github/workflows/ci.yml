@@ -11,63 +11,68 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout the code from the repository
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # Set up Node.js environment
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '14' # Specify the Node.js version you need
 
+      # Cache Node.js dependencies to speed up builds
       - name: Cache Node.js Dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - name: Upload Jest output for debugging
-        uses: actions/upload-artifact@v4
-        with:
-          name: jest-output
-          path: ./coverage/*
-
-      - name: List node_modules
-        run: ls -R node_modules
-
-      - name: Print Jest config
-        run: npx jest --showConfig
-
+      # Install project dependencies
       - name: Install Dependencies
         run: npm install
 
-      - name: Run tests
-        run: npm test -- --watchAll=false --testPathPattern="path/to/changed/files"
+      # List node_modules to verify installation
+      - name: List node_modules
+        run: ls -R node_modules || echo "node_modules not found"
 
+      # Run Jest tests (non-watch mode) 
+      - name: Run Tests
+        run: npm test -- --watchAll=false
+
+      # Generate code coverage report with Jest
+      - name: Generate Code Coverage Report
+        run: npm run coverage
+
+      # Upload coverage to Codecov
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v3
         with:
           file: ./coverage/lcov-report/lcov-report.xml
           token: ${{ secrets.CODECOV_TOKEN }}
           debug: true
 
-      - name: Run tests in watch mode
-        run: npm test -- --watch
-
-      - name: Generate Code Coverage Report
-        run: npm run coverage
+      # Upload Jest output and coverage reports as artifacts
+      - name: Upload Jest Output for Debugging
+        uses: actions/upload-artifact@v3
+        with:
+          name: jest-output
+          path: ./coverage/*
 
       - name: Upload Code Coverage Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: code-coverage-report
           path: coverage/
 
+      # Fail fast if any test fails
       - name: Fail Fast on Test Failures
         if: failure()
         run: exit 1
 
+      # Notify the team on Slack in case of test failure
       - name: Notify Team on Test Failures
         if: failure()
         uses: rtCamp/action-slack-notify@v2
