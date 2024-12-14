@@ -30,8 +30,8 @@ jobs:
       - name: Upload Jest output for debugging
         uses: actions/upload-artifact@v2
         with:
-        name: jest-output
-        path: ./coverage/*
+          name: jest-output
+          path: ./coverage/*
 
       - name: List node_modules
         run: ls -R node_modules
