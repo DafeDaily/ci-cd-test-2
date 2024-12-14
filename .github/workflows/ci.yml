@@ -21,6 +21,14 @@ jobs:
         with:
           node-version: '14' # Specify the Node.js version you need
 
+      # Upgrade npm to the latest version to support lockfileVersion@3
+      - name: Upgrade npm to latest
+        run: npm install -g npm@latest
+
+      # Clear npm cache to avoid potential issues with outdated or corrupt cache
+      - name: Clear npm cache
+        run: npm cache clean --force
+
       # Cache Node.js dependencies to speed up builds
       - name: Cache Node.js Dependencies
         uses: actions/cache@v3
@@ -38,7 +46,7 @@ jobs:
       - name: List node_modules
         run: ls -R node_modules || echo "node_modules not found"
 
-      # Run Jest tests (non-watch mode) 
+      # Run Jest tests (non-watch mode)
       - name: Run Tests
         run: npm test -- --watchAll=false
 
