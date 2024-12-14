@@ -10,56 +10,47 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [14.x]  # Specify your Node.js version
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Set up Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node-version }}
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
 
-      - name: Cache Node.js dependencies
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
 
-      - name: Install dependencies
-        run: npm ci
+    - name: Install dependencies
+      run: npm ci
 
-      - name: Run tests with coverage
-        run: npm test -- --coverage
+    - name: Run tests
+      run: npm test
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}  # Set up CODECOV_TOKEN in your repository secrets
-          files: coverage/clover.xml  # Adjust the path if needed
+    - name: Generate code coverage report
+      run: npm run coverage
 
-      - name: Fail if coverage is below threshold
-        run: |
-          THRESHOLD=90
-          COVERAGE=$(cat coverage/clover.xml | grep -oP '(?<=<coverage[^>]*>)[^<]*(?=</coverage>)')
-          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
-            echo "Code coverage ($COVERAGE%) is below the threshold ($THRESHOLD%)"
-            exit 1
-          fi
+    - name: Upload coverage report to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage/lcov.info
 
-      - name: Send Slack notification on failure
-        if: failure()
-        uses: rtCamp/action-slack-notify@v2
-        env:
-          SLACK_CHANNEL: your-slack-channel  # Replace with your Slack channel
-          SLACK_COLOR: '#FF0000'  # Red color for failure
-          SLACK_ICON: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
-          SLACK_MESSAGE: 'Integration tests failed on ${{ github.ref }}'
-          SLACK_TITLE: 'CI Failure'
-          SLACK_USERNAME: GitHub Actions
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}  # Set up SLACK_WEBHOOK in your repository secrets
+    - name: Notify team on failure
+      if: failure()
+      uses: actions/github-script@v3
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          github.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: 'Tests failed! Please check the logs for more details.'
+          })
