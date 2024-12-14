@@ -12,10 +12,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: '14' # Specify the Node.js version you need
 
@@ -28,7 +28,7 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Upload Jest output for debugging
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: jest-output
           path: ./coverage/*
@@ -70,7 +70,7 @@ jobs:
 
       - name: Notify Team on Test Failures
         if: failure()
-        uses: rtCamp/action-slack-notify@v2
+        uses: rtCamp/action-slack-notify@v4
         env:
           SLACK_CHANNEL: your-slack-channel # Replace with your Slack channel name
           SLACK_COLOR: ${{ job.status }} # Use the job status for the color (e.g., danger for failure)
