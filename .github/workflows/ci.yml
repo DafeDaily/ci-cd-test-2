@@ -15,19 +15,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Set up Node.js environment
+      # Set up Node.js environment with a version >=18
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '14' # Specify the Node.js version you need
-
-      # Upgrade npm to the latest version to support lockfileVersion@3
-      - name: Upgrade npm to latest
-        run: npm install -g npm@latest
-
-      # Clear npm cache to avoid potential issues with outdated or corrupt cache
-      - name: Clear npm cache
-        run: npm cache clean --force
+          node-version: '18'  # Update Node.js to version 18
 
       # Cache Node.js dependencies to speed up builds
       - name: Cache Node.js Dependencies
@@ -42,11 +34,7 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      # List node_modules to verify installation
-      - name: List node_modules
-        run: ls -R node_modules || echo "node_modules not found"
-
-      # Run Jest tests (non-watch mode)
+      # Run Jest tests (non-watch mode) 
       - name: Run Tests
         run: npm test -- --watchAll=false
 
