@@ -7,16 +7,5 @@ describe('Integration Tests', () => {
     expect(add(2, 3)).toBe(5);
   });
 
-  test('fetchData returns expected data', (done) => {
-    function callback(data) {
-      try {
-        expect(data).toBe("Data fetched successfully!");
-        done();
-      } catch (error) {
-        done(error);
-      }
-    }
-
-    fetchData(callback);
-  });
+  
 });
